@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const BulletGame = () => {
+const BackendBrawl = () => {
   // Game entities
+  const cleanupRef = useRef(null);
   const [leftPosition] = useState(50);
   const [rightPosition, setRightPosition] = useState(750);
   const [leftHealth, setLeftHealth] = useState(100);
@@ -59,7 +60,15 @@ const BulletGame = () => {
 
   // Game loop for bullet movement and collision
   useEffect(() => {
+    if (!gameStarted) return; // Don't run game loop if game isn't started
+    
     const gameLoop = setInterval(() => {
+      if (leftHealth <= 0 || rightHealth <= 0) {
+        setGameStarted(false);
+        return;
+      }
+
+      // Rest of the game loop code remains the same...
       // Move left bullets (right direction)
       setLeftBullets(prev => 
         prev.map(bullet => ({
@@ -109,41 +118,59 @@ const BulletGame = () => {
     }, 16);
 
     return () => clearInterval(gameLoop);
-  }, [leftPosition, rightPosition, leftBullets, rightBullets, gameAreaHeight]);
+  }, [leftPosition, rightPosition, leftBullets, rightBullets, gameAreaHeight, gameStarted, leftHealth, rightHealth]);
+
+  // Stop when the game ends
+  useEffect(() => {
+    if ((leftHealth <= 0 || rightHealth <= 0) && gameStarted) {
+      setGameStarted(false); // Stop the game without resetting state
+      if (cleanupRef.current) {
+        cleanupRef.current(); // Clean up the bullet firing animation
+        cleanupRef.current = null;
+      }
+      // Clear all bullets
+      setLeftBullets([]);
+      setRightBullets([]);
+    }
+  }, [leftHealth, rightHealth, gameStarted]);
 
   // Fetch attacks from MongoDB and fire bullets
   const fetchAttacksAndFire = async () => {
+    let animationFrameId;
+    let shouldContinue = true;
+  
     try {
-      const response = await fetch('http://localhost:8000/combined-attacks');
+      const response = await fetch('http://localhost:7000/start-game');
       const attacks = await response.json();
       
       setGameStarted(true);
       
       const fireBulletsWithAnimationFrame = (attacks) => {
         let lastFireTime = performance.now();
-        const fireRate = 200; // ms time between shots
+        const fireRate = 200;
         let attackIndex = 0;
         
         const fireNext = (currentTime) => {
+          if (!shouldContinue) return;
+          
           while (attackIndex < attacks.length && 
                  currentTime - lastFireTime >= fireRate) {
             const attack = attacks[attackIndex];
             if (attack.server === 'go') {
-              fireBullet(false); // Fire from right
+              fireBullet(false);
             } else if (attack.server === 'node') {
-              fireBullet(true); // Fire from left
+              fireBullet(true);
             }
             attackIndex++;
             lastFireTime += fireRate;
           }
           
-          // Continue only if we have more attacks
-          if (attackIndex < attacks.length) {
-            requestAnimationFrame(fireNext);
+          if (attackIndex < attacks.length && shouldContinue) {
+            animationFrameId = requestAnimationFrame(fireNext);
           }
         };
         
-        requestAnimationFrame(fireNext);
+        animationFrameId = requestAnimationFrame(fireNext);
       };
   
       fireBulletsWithAnimationFrame(attacks);
@@ -151,9 +178,35 @@ const BulletGame = () => {
     } catch (err) {
       console.error('Error fetching attacks:', err);
     }
+  
+    // Store the cleanup function in the ref
+    cleanupRef.current = () => {
+      shouldContinue = false;
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  
+    return cleanupRef.current;
   };
+  
+  
+  const stopGame = () => {
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
+    }
+    setLeftBullets([]);
+    setRightBullets([]);
+    resetGame();
+  };
+
   // Reset game
   const resetGame = () => {
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
+    }
     setLeftHealth(100);
     setRightHealth(100);
     setLeftBullets([]);
@@ -162,44 +215,46 @@ const BulletGame = () => {
   };
 
   return (
-    <div style={{ 
-      padding: '20px',
-      width: '100vw',
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxSizing: 'border-box'
-    }}>
-      <h2 style={{ fontSize: '2rem', marginBottom: '20px' }}>Bullet Battle</h2>
       <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        width: '80%',
-        maxWidth: '800px',
-        marginBottom: '20px',
-        fontSize: '1.2rem'
+        padding: '20px',
+        width: '100%', // Changed from 100vw to 100%
+        height: '100%', // Changed from 100vh to 100%
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-start', // Changed from 'center' to 'flex-start'
+        boxSizing: 'border-box',
+        overflow: 'auto' // Added for scroll if content overflows
       }}>
-        <div>Left Health: {leftHealth}%</div>
-        <div>Right Health: {rightHealth}%</div>
-      </div>
-      
-      <div
-        ref={gameAreaRef}
-        style={{
-          position: 'relative',
-          width: '80vw',
-          height: '50vh',
-          minWidth: '800px',
-          minHeight: '400px',
-          maxWidth: '1200px',
-          maxHeight: '600px',
-          border: '3px solid #333',
-          backgroundColor: 'black',
-          overflow: 'hidden'
-        }}
-      >
+        <h2 style={{ fontSize: '2rem', margin: '20px 0' }}>BackendBrawl</h2>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          width: '100%',
+          maxWidth: '800px',
+          marginBottom: '20px',
+          fontSize: '1.2rem'
+        }}>
+          <div>Left Health: {leftHealth}%</div>
+          <div>Right Health: {rightHealth}%</div>
+        </div>
+        
+        <div
+          ref={gameAreaRef}
+          style={{
+            position: 'relative',
+            width: '90%', // Changed from 80vw to 90%
+            height: '30vh', // Adjusted from 50vh to 60vh
+            minWidth: '1000px', // Reduced from 800px
+            minHeight: '100px', // Reduced from 400px
+            maxWidth: '1200px',
+            maxHeight: '600px',
+            border: '3px solid #333',
+            backgroundColor: 'black',
+            overflow: 'hidden',
+            marginBottom: '20px' // Added for spacing
+          }}
+        >
         {/* javascript left side */}
         <motion.div
           style={{
@@ -296,7 +351,7 @@ const BulletGame = () => {
             animate={{ opacity: 1 }}
           >
             <h3>Game Over!</h3>
-            <p>{leftHealth <= 0 ? 'Right' : 'Left'} player wins!</p>
+            <p>{leftHealth <= 0 ? 'Golang' : 'Node'} Wins!</p>
             <button 
               onClick={resetGame}
               style={{
@@ -323,37 +378,25 @@ const BulletGame = () => {
       }}>
         {!gameStarted ? (
           <button 
-            onClick={fetchAttacksAndFire}
-            style={{ 
-              padding: '12px 24px',
-              fontSize: '1.2rem',
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer'
-            }}
-          >
-            Start Game
-          </button>
+          onClick={async () => {
+            cleanupRef.current = await fetchAttacksAndFire();
+          }}
+          style={{ 
+            padding: '12px 24px',
+            fontSize: '1.2rem',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer'
+          }}
+        >
+          Start Game
+        </button>
         ) : (
           <>
             <button 
-              onClick={() => fireBullet(true)}
-              style={{ 
-                padding: '12px 24px',
-                fontSize: '1.2rem',
-                backgroundColor: '#2196F3',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer'
-              }}
-            >
-              Fire Left
-            </button>
-            <button 
-              onClick={() => fireBullet(false)}
+              onClick={stopGame}
               style={{ 
                 padding: '12px 24px',
                 fontSize: '1.2rem',
@@ -364,7 +407,7 @@ const BulletGame = () => {
                 cursor: 'pointer'
               }}
             >
-              Fire Right
+              Stop Game
             </button>
           </>
         )}
