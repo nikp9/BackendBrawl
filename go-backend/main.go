@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -16,14 +15,16 @@ const nodeURL string = "http://localhost:3000/attack"
 
 var (
 	mongoClient *mongo.Client
+	isActive bool
 )
 
 func main() {
 	initMongoDB()
 	defer mongoClient.Disconnect(context.Background())
 	r := mux.NewRouter()
-
+	r.HandleFunc("/start", serveStart).Methods("GET")
 	r.HandleFunc("/attack", serveAttack).Methods("GET")
+	r.HandleFunc("/stop", serveStop).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":5000", r))
 }
@@ -60,12 +61,24 @@ func recordAttack() {
 }
 
 func serveAttack(w http.ResponseWriter, r *http.Request) {
-	recordAttack()
-	fmt.Println("Attack")
+	if isActive {
+		recordAttack()
+		go func() {
+			http.Get(nodeURL)
+		}()
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
 
+func serveStart(w http.ResponseWriter, r *http.Request) {
+	isActive = true
 	go func() {
 		http.Get(nodeURL)
 	}()
+	w.WriteHeader(http.StatusNoContent)
+}
 
+func serveStop(w http.ResponseWriter, r *http.Request) {
+	isActive = false
 	w.WriteHeader(http.StatusNoContent)
 }

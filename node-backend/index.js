@@ -8,7 +8,7 @@ const goURL = "http://localhost:5000/attack";
 
 let mongoClient;
 let attacksCollection;
-
+let isActive;
 
 async function recordAttack() {
     const now = process.hrtime();
@@ -24,18 +24,31 @@ async function recordAttack() {
     }
 }
 
-app.get('/start-attack', (req, res) => {
-    res.redirect(302, `${goURL}?initiator=node`);
-});
-
-app.get('/attack', async (req, res) => {
-    await recordAttack();
-    console.log("Attack")
+app.get('/start', async (req, res) => {
+    isActive = true
     try {
         await axios.get(goURL);
     } catch (err) {
         console.error(`Error attacking Go server:`, err.message);
     }
+    res.status(204).end();
+});
+
+app.get('/attack', async (req, res) => {
+    if (isActive) {
+        await recordAttack();
+        try {
+            await axios.get(goURL);
+        } catch (err) {
+            console.error(`Error attacking Go server:`, err.message);
+        }
+    }
+    res.status(204).end();
+});
+
+
+app.get('/stop', async (req, res) => {
+    isActive = false
     res.status(204).end();
 });
 
