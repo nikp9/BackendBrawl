@@ -1,10 +1,10 @@
-import BulletGame from './assets/components/BulletGame'
+import BackendBrawl from './components/BackendBrawl.jsx'
 import './App.css'
 
 function App() {
   return (
     <div className="app-container">
-      <BulletGame />
+      <BackendBrawl />
     </div>
   )
 }
