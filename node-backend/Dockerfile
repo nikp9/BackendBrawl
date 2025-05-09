@@ -1,7 +1,18 @@
 FROM node:18-alpine
+
 WORKDIR /app
+
+# Copy package files first for better caching
 COPY package.json package-lock.json ./
-RUN npm ci --production
+
+# Install dependencies (production-only for smaller image)
+RUN npm ci --only=production
+
+# Copy all source files
 COPY . .
-EXPOSE 3000
-CMD ["node", "server.js"]
+
+# Use the PORT environment variable
+EXPOSE $PORT
+
+# Start the application
+CMD ["npm", "start"]

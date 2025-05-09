@@ -1,13 +1,19 @@
-# Build stage
-FROM golang:1.21-alpine AS builder
-WORKDIR /app
-COPY . .
-RUN go mod download
-RUN CGO_ENABLED=0 GOOS=linux go build -o controller .
+# Use newer Go version (replace 1.24 with your required version)
+FROM golang:1.24-alpine AS builder
 
-# Final stage
-FROM alpine:latest
 WORKDIR /app
-COPY --from=builder /app/controller .
-EXPOSE 7000
-CMD ["./controller"]
+
+# Enable Go modules
+ENV GO111MODULE=on
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/main
+
+FROM alpine:3.18
+WORKDIR /app
+COPY --from=builder /app/main /app/main
+EXPOSE $PORT
+CMD ["/app/main"]
