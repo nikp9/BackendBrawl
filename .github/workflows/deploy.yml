@@ -23,4 +23,4 @@ jobs:
         run: docker compose -f docker-compose.ghcr.yml pull
 
       - name: Restart backend stack
-        run: docker compose -f docker-compose.ghcr.yml up -d --remove-orphans
+        run: docker-compose -f docker-compose.ghcr.yml up -d --remove-orphans
