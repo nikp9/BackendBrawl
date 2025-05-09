@@ -107,3 +107,4 @@ secrets.yaml
 *.secret
 tmp/
 temp/
+docker-compose.local.yml
