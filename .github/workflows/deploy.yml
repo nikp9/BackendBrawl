@@ -1,0 +1,26 @@
+name: Pull images & Deploy 
+
+on:
+  workflow_run:
+    workflows: ["Build and Publish to GHCR"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    name: Deploy on EC2 via Runner
+    runs-on: self-hosted
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Pull container images
+        run: docker compose -f docker-compose.ghcr.yml pull
+
+      - name: Restart backend stack
+        run: docker compose -f docker-compose.ghcr.yml up -d --remove-orphans

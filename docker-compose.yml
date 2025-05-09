@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    command: mongod --bind_ip_all
+    healthcheck:
+      test: mongosh --eval "db.runCommand({ping:1})"
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  controller:
+    build:
+      context: ./controller
+    ports:
+      - "7000:7000"
+    environment:
+      GOTOOLCHAIN: go1.24.2 
+      PORT: 7000
+      MONGODB_URI: "mongodb://mongodb:27017/backendbrawl"  # Same database for all
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  go-backend:
+    build:
+      context: ./go-backend
+    ports:
+      - "5000:5000"
+    environment:
+      GOTOOLCHAIN: go1.24.2 
+      PORT: 5000
+      MONGODB_URI: "mongodb://mongodb:27017/backendbrawl"  # Same database
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  node-backend:
+    build:
+      context: ./node-backend
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      MONGODB_URI: "mongodb://mongodb:27017/backendbrawl"  # Same database
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - controller
+      - node-backend
+      - go-backend
+
+volumes:
+  mongodb_data:

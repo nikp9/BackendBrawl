@@ -1,0 +1,60 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    command: mongod --bind_ip_all
+    healthcheck:
+      test: mongosh --eval "db.runCommand({ping:1})"
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  controller:
+    image: ghcr.io/nikp9/controller:latest
+    ports:
+      - "7000:7000"
+    environment:
+      GOTOOLCHAIN: go1.24.2
+      PORT: 7000
+      MONGODB_URI: "mongodb://mongodb:27017/backendbrawl"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  go-backend:
+    image: ghcr.io/nikp9/go-backend:latest
+    ports:
+      - "5000:5000"
+    environment:
+      GOTOOLCHAIN: go1.24.2
+      PORT: 5000
+      MONGODB_URI: "mongodb://mongodb:27017/backendbrawl"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  node-backend:
+    image: ghcr.io/nikp9/node-backend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      MONGODB_URI: "mongodb://mongodb:27017/backendbrawl"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  frontend:
+    image: ghcr.io/nikp9/frontend:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - controller
+      - node-backend
+      - go-backend
+
+volumes:
+  mongodb_data:
