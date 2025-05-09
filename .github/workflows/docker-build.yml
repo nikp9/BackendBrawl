@@ -1,15 +1,15 @@
-name: CI Pipeline
+name: Docker Build and Push
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository_owner }}/${{ github.event.repository.name }}
-  MONGODB_VERSION: 6.0-alpine
+  MONGODB_VERSION: 6.0
 
 jobs:
   build-and-push:
@@ -25,46 +25,25 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    strategy:
-      matrix:
-        component: ['controller', 'go-backend', 'node-backend', 'frontend']
-        include:
-          - component: controller
-            port: 7000
-          - component: go-backend
-            port: 5000
-          - component: node-backend
-            port: 3000
-          - component: frontend
-            port: 80
-      fail-fast: false
-
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Login to GitHub Container Registry
+      - name: Login to GHCR
         uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push controller
         uses: docker/build-push-action@v4
         with:
-          context: ./${{ matrix.component }}
+          context: ./controller
           push: ${{ github.event_name == 'push' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.component }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.component }}:${{ github.sha }}
-          build-args: |
-            PORT=${{ matrix.port }}
-            BUILDKIT_INLINE_CACHE=1
-          labels: |
-            org.opencontainers.image.source=${{ github.repositoryUrl }}
-            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
-            org.opencontainers.image.revision=${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/controller:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/controller:${{ github.sha }}
