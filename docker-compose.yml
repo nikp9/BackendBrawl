@@ -47,14 +47,5 @@ services:
       mongodb:
         condition: service_healthy
 
-  frontend:
-    image: ghcr.io/nikp9/frontend:latest
-    ports:
-      - "80:80"
-    depends_on:
-      - controller
-      - node-backend
-      - go-backend
-
 volumes:
   mongodb_data:
