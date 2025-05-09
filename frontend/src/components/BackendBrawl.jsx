@@ -142,7 +142,6 @@ const BackendBrawl = () => {
     try {
       const response = await fetch('http://localhost:7000/start-game');
       const attacks = await response.json();
-      
       setGameStarted(true);
       
       const fireBulletsWithAnimationFrame = (attacks) => {

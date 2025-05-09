@@ -4,7 +4,7 @@ const { MongoClient, Long } = require('mongodb');
 const app = express();
 const port = 3000;
 
-const goURL = "http://localhost:5000/attack";
+const goURL = "http://go-backend:5000/attack";
 
 let mongoClient;
 let attacksCollection;
@@ -54,9 +54,9 @@ app.get('/stop', async (req, res) => {
 
 async function startServer() {
     try {
-        mongoClient = new MongoClient('mongodb://localhost:27017');
+        mongoClient = new MongoClient('mongodb://mongodb:27017');
         await mongoClient.connect();
-        attacksCollection = mongoClient.db('attackdb').collection('attacks');
+        attacksCollection = mongoClient.db('backendbrawl').collection('attacks');
         
         app.listen(port, () => {
             console.log(`Node server listening on port ${port}`);

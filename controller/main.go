@@ -17,10 +17,10 @@ import (
 )
 
 var (
-	nodeURL      = "http://localhost:3000/start"
-	goURL        = "http://localhost:5000/start"
-	nodeStopURL  = "http://localhost:3000/stop"
-	goStopURL    = "http://localhost:5000/stop"
+	nodeURL      = "http://node-backend:3000/start"
+	goURL        = "http://go-backend:5000/start"
+	nodeStopURL  = "http://node-backend:3000/stop"
+	goStopURL    = "http://go-backend:5000/stop"
 	mu           sync.Mutex
 	status       int
 	mongoClient  *mongo.Client
@@ -33,20 +33,23 @@ func main() {
 	defer cancel()
 	
 	var err error
-	mongoClient, err = mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	mongoClient, err = mongo.Connect(ctx, options.Client().ApplyURI("mongodb://mongodb:27017"))
 	if err != nil {
 		log.Fatal("Failed to connect to MongoDB:", err)
 	}
 	
-	attacksCollection = mongoClient.Database("attackdb").Collection("attacks")
+	attacksCollection = mongoClient.Database("backendbrawl").Collection("attacks")
 	
 	r := mux.NewRouter()
 
 	cors := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:5173"}), // Your frontend origin
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type"}),
-	)
+        handlers.AllowedOrigins([]string{
+            "http://localhost",
+            "http://localhost:80",
+        }),
+        handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+        handlers.AllowedHeaders([]string{"Content-Type"}),
+    )
 
 	r.HandleFunc("/start-game", startGame).Methods("GET")
 	

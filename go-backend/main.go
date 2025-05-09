@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const nodeURL string = "http://localhost:3000/attack"
+const nodeURL string = "http://node-backend:3000/attack"
 
 var (
 	mongoClient *mongo.Client
@@ -34,7 +34,7 @@ func initMongoDB() {
 	defer cancel()
 
 	var err error
-	mongoClient, err = mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	mongoClient, err = mongo.Connect(ctx, options.Client().ApplyURI("mongodb://mongodb:27017"))
 	if err != nil {
 		log.Fatal("MongoDB connection failed:", err)
 	}
@@ -50,7 +50,7 @@ func recordAttack() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := mongoClient.Database("attackdb").Collection("attacks")
+	collection := mongoClient.Database("backendbrawl").Collection("attacks")
 	_, err := collection.InsertOne(ctx, map[string]any{
 		"timestamp": time.Now().UnixNano(),
 		"server":    "go",
