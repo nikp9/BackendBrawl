@@ -53,6 +53,7 @@ func main() {
     )
 
 	r.HandleFunc("/start-game", startGame).Methods("GET")
+    r.HandleFunc("/", serveHome).Methods("GET")
 	
 	log.Fatal(http.ListenAndServe(":7000", cors(r)))
 }
@@ -139,4 +140,8 @@ func startGame(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
     w.Write(jsonData)
+}
+
+func serveHome(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusOK)
 }
