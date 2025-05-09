@@ -20,7 +20,7 @@ jobs:
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Pull container images
-        run: docker-compose -f docker-compose.ghcr.yml pull
+        run: docker compose -f docker-compose.ghcr.yml pull
 
       - name: Restart backend stack
-        run: docker-compose -f docker-compose.ghcr.yml up -d --remove-orphans
+        run: docker compose -f docker-compose.ghcr.yml up -d --remove-orphans
