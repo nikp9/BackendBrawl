@@ -46,6 +46,7 @@ func main() {
         handlers.AllowedOrigins([]string{
             "http://localhost",
             "http://localhost:80",
+            "https://backend-brawl.vercel.app/",
         }),
         handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
         handlers.AllowedHeaders([]string{"Content-Type"}),

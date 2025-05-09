@@ -140,7 +140,7 @@ const BackendBrawl = () => {
     let shouldContinue = true;
   
     try {
-      const response = await fetch('http://localhost:7000/start-game');
+      const response = await fetch('https://65.0.179.37:7000/start-game');
       const attacks = await response.json();
       setGameStarted(true);
       
