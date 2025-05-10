@@ -47,7 +47,7 @@ This animated diagram illustrates the flow between:
 
 ## 🌐 Live Demo
 
-Check out the live simulation here: [https://your-frontend-url.vercel.app](https://backend-brawl.vercel.app/)
+Check out the live simulation here: [Vercel App](https://backend-brawl.vercel.app/)
 
 ---
 
