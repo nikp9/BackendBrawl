@@ -65,6 +65,18 @@ While Node.js and Golang have different philosophies, this project shows:
 
 ---
 
+## 🚧 Work in Progress
+
+I'm actively working on improvements to **BackendBrawl**! Some upcoming enhancements include:
+
+- 🎨 Visual improvements to the frontend UI for a smoother, more immersive battle experience  
+- ⚡ Performance tweaks and animation polish  
+- 📊 Additional statistics and insights post-simulation  
+
+Stay tuned for updates!
+
+---
+
 ## 📜 License
 
 MIT License — use it freely, and have fun!
