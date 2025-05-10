@@ -47,7 +47,7 @@ This animated diagram illustrates the flow between:
 
 ## 🌐 Live Demo
 
-Check out the live simulation here: [https://your-frontend-url.vercel.app](https://your-frontend-url.vercel.app)
+Check out the live simulation here: [https://your-frontend-url.vercel.app](https://backend-brawl.vercel.app/)
 
 ---
 
@@ -59,7 +59,7 @@ While Node.js and Golang have different philosophies, this project shows:
 
 ---
 
-## 📸 Screenshots
+## 📸 Demo
 
 ![BackendBrawl Simulation](assets/demo.gif)
 

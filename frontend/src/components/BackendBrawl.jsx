@@ -60,7 +60,7 @@ const BackendBrawl = () => {
 
   // Game loop for bullet movement and collision
   useEffect(() => {
-    if (!gameStarted) return; // Don't run game loop if game isn't started
+    if (!gameStarted) return;
     
     const gameLoop = setInterval(() => {
       if (leftHealth <= 0 || rightHealth <= 0) {
@@ -68,8 +68,6 @@ const BackendBrawl = () => {
         return;
       }
 
-      // Rest of the game loop code remains the same...
-      // Move left bullets (right direction)
       setLeftBullets(prev => 
         prev.map(bullet => ({
           ...bullet,
@@ -216,14 +214,14 @@ const BackendBrawl = () => {
   return (
       <div style={{ 
         padding: '20px',
-        width: '100%', // Changed from 100vw to 100%
-        height: '100%', // Changed from 100vh to 100%
+        width: '100%', 
+        height: '100%', 
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'flex-start', // Changed from 'center' to 'flex-start'
+        justifyContent: 'flex-start',
         boxSizing: 'border-box',
-        overflow: 'auto' // Added for scroll if content overflows
+        overflow: 'auto'
       }}>
         <h2 style={{ fontSize: '2rem', margin: '20px 0' }}>BackendBrawl</h2>
         <div style={{ 
@@ -242,16 +240,16 @@ const BackendBrawl = () => {
           ref={gameAreaRef}
           style={{
             position: 'relative',
-            width: '90%', // Changed from 80vw to 90%
-            height: '30vh', // Adjusted from 50vh to 60vh
-            minWidth: '1000px', // Reduced from 800px
-            minHeight: '100px', // Reduced from 400px
+            width: '90%', 
+            height: '30vh', 
+            minWidth: '1000px',
+            minHeight: '100px',
             maxWidth: '1200px',
             maxHeight: '600px',
             border: '3px solid #333',
             backgroundColor: 'black',
             overflow: 'hidden',
-            marginBottom: '20px' // Added for spacing
+            marginBottom: '20px'
           }}
         >
         {/* javascript left side */}
